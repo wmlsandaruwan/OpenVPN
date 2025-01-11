@@ -23,5 +23,5 @@ The web interface is mobile-friendly and allows secure access to client configur
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/your-repo-name/openvpn-setup.git](https://github.com/wmlsandaruwan/OpenVPN.git)
+   git clone https://github.com/wmlsandaruwan/OpenVPN.git
    cd openvpn-setup
