@@ -25,3 +25,7 @@ The web interface is mobile-friendly and allows secure access to client configur
    ```bash
    git clone https://github.com/wmlsandaruwan/OpenVPN.git
    cd openvpn-setup
+   
+chmod +x openvpn-setup.sh
+sudo ./openvpn-setup.sh
+
