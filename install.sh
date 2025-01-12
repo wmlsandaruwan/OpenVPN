@@ -5,7 +5,7 @@ DEFAULT_VPN_PORT=443
 DEFAULT_VPN_PROTOCOL="tcp"
 DEFAULT_VPN_SUBNET="10.8.0.0"
 DEFAULT_VPN_NETMASK="255.255.255.0"
-DEFAULT_INTERFACE="ens18"
+DEFAULT_INTERFACE="eth0"
 DEFAULT_COUNTRY="US"
 DEFAULT_PROVINCE="California"
 DEFAULT_CITY="San Francisco"
@@ -51,6 +51,14 @@ EOF
 
     echo "Client configuration created: ${client_config}"
     echo "Replace YOUR_SERVER_IP in the configuration file with the server's public IP."
+}
+
+# Ensure system dependencies are resolved
+fix_dependencies() {
+    echo "Fixing package dependencies..."
+    sudo apt remove -y iptables-persistent netfilter-persistent || true
+    sudo apt --fix-broken install -y
+    sudo apt update && sudo apt upgrade -y
 }
 
 # Prompt user for settings
@@ -126,7 +134,7 @@ if [[ "$confirm" != "y" ]]; then
 fi
 
 # Begin OpenVPN setup
-sudo apt update && sudo apt upgrade -y
+fix_dependencies
 sudo apt install -y openvpn easy-rsa iptables-persistent ufw apache2 apache2-utils
 
 # Configure Apache Web Server
@@ -139,7 +147,11 @@ if [[ "$ENABLE_WEB_SERVER" == "yes" ]]; then
     done
     echo "</ul></body></html>" >> /var/www/html/index.html
     echo "$WEB_PASSWORD" | sudo htpasswd -c -i /etc/apache2/.htpasswd vpnadmin
-    sudo sed -i "s|<Directory /var/www/>|<Directory /var/www/html/>\n    AuthType Basic\n    AuthName \"Restricted Access\"\n    AuthUserFile /etc/apache2/.htpasswd\n    Require valid-user|" /etc/apache2/sites-available/000-default.conf
+    sudo sed -i "s|<Directory /var/www/>|<Directory /var/www/html/>
+    AuthType Basic
+    AuthName \"Restricted Access\"
+    AuthUserFile /etc/apache2/.htpasswd
+    Require valid-user|" /etc/apache2/sites-available/000-default.conf
     sudo ufw allow $WEB_PORT/tcp
     sudo systemctl restart apache2
 fi
@@ -185,6 +197,7 @@ if [[ "$ADD_ADDITIONAL_SUBNETS" == "yes" ]]; then
 fi
 
 # Enable OpenVPN service
+sudo mkdir -p /etc/openvpn
 sudo systemctl enable openvpn@server
 sudo systemctl start openvpn@server
 
